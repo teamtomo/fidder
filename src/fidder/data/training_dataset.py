@@ -15,9 +15,11 @@ from torchvision.transforms import functional as TF
 
 from .augmentation import random_flip, random_square_crop_at_scale
 from .utils import calculate_resampling_factor
+from ..constants import TRAINING_IMAGE_DIMENSIONS, TRAINING_PIXEL_SIZE
 
 
 class FidderDataset(Dataset):
+
     """Fiducial segmentation dataset.
 
     https://zenodo.org/record/7104305
@@ -27,9 +29,6 @@ class FidderDataset(Dataset):
       before being passed to the network
     - train/eval mode activated via methods of the same name
     """
-
-    INPUT_SHAPE = (512, 512)
-    TARGET_PIXEL_SIZE = 8
     PIXEL_SIZE_MAP = {
         "EMPIAR-10164": 1.35,
         "EMPIAR-10814": 2.96,
@@ -101,12 +100,12 @@ class FidderDataset(Dataset):
 
         # resample images to standard pixel size
         image_pixel_size = self.PIXEL_SIZE_MAP[name[:12]]
-        downsample_factor = calculate_resampling_factor(
+        resampling_factor = calculate_resampling_factor(
             source=image_pixel_size,
-            target=self.TARGET_PIXEL_SIZE,
+            target=TRAINING_PIXEL_SIZE,
         )
         _, h, w = TF.get_dimensions(image)
-        target_size = int(min(h, w) / downsample_factor)
+        target_size = int(min(h, w) * resampling_factor)
         image = TF.resize(
             image, target_size, interpolation=TF.InterpolationMode.BICUBIC
         )
@@ -118,7 +117,7 @@ class FidderDataset(Dataset):
         else:
             if self._validation_crop_parameters is None:
                 self._validation_crop_parameters = T.RandomCrop.get_params(
-                    image, output_size=self.INPUT_SHAPE
+                    image, output_size=TRAINING_IMAGE_DIMENSIONS
                 )
             image = TF.crop(image, *self._validation_crop_parameters)
             mask = TF.crop(mask, *self._validation_crop_parameters)
@@ -135,15 +134,19 @@ class FidderDataset(Dataset):
     def augment(
         self, image: torch.Tensor, mask: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        target_scale = np.prod(self.INPUT_SHAPE) / np.prod(image.shape)
+        target_scale = np.prod(self.model.TRAINING_IMAGE_SHAPE) / np.prod(image.shape)
         image, mask = random_square_crop_at_scale(
             image, mask, scale_range=[0.75 * target_scale, 1.33 * target_scale]
         )
         image = TF.resize(
-            image, size=self.INPUT_SHAPE, interpolation=TF.InterpolationMode.BICUBIC
+            image,
+            size=self.model.TRAINING_IMAGE_SHAPE,
+            interpolation=TF.InterpolationMode.BICUBIC
         )
         mask = TF.resize(
-            mask, size=self.INPUT_SHAPE, interpolation=TF.InterpolationMode.NEAREST
+            mask,
+            size=self.model.TRAINING_IMAGE_SHAPE,
+            interpolation=TF.InterpolationMode.NEAREST
         )
         image, mask = random_flip(image, mask, p=0.5)
         return image, mask

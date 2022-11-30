@@ -5,7 +5,7 @@ from pathlib import Path
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
 
-from .dataset import FidderDataset
+from .training_dataset import FidderDataset
 
 
 class FidderDataModule(pl.LightningDataModule):

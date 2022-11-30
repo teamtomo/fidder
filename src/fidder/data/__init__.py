@@ -1,4 +1,4 @@
 __all__ = ["FidderDataset", "FidderDataModule"]
 
-from .data_module import FidderDataModule
-from .dataset import FidderDataset
+from .training_datamodule import FidderDataModule
+from .training_dataset import FidderDataset

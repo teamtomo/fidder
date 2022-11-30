@@ -1,27 +1,34 @@
-from typing import Tuple
+from typing import Tuple, Optional, Callable, Any
 
 import pytorch_lightning as pl
+import tiler
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from einops import rearrange
+from tiler import Tiler, Merger
 from torch import Tensor, optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from .dice import dice_loss, dice_score
 from .model_parts import Conv3x3, Down, Up
+from ..data.utils import normalise_2d
+from ..constants import TRAINING_IMAGE_DIMENSIONS
 
 
 class Fidder(pl.LightningModule):
     """U-Net with ResNet18 style encoder."""
-
     in_channels: int = 1
     num_classes: int = 2
     learning_rate: float = 2.75e-05
 
     def __init__(
-        self,
+        self, batch_size: int = 4, learning_rate: float = 2.75e-05
     ):
         super().__init__()
+        self.batch_size = batch_size
+        self.learning_rate = learning_rate
+
         self.base_layer = nn.Sequential(
             nn.Conv2d(
                 in_channels=self.in_channels,
@@ -49,7 +56,8 @@ class Fidder(pl.LightningModule):
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+                nn.init.kaiming_normal_(m.weight, mode="fan_out",
+                                        nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
@@ -92,10 +100,36 @@ class Fidder(pl.LightningModule):
         self.log("validation dice score", dice)
         return dice
 
-    def predict_step(self, batch, batch_idx):
-        prediction = self(batch)  # (b, c, h, w)
-        probabilities = F.softmax(prediction, dim=1)[:, 1, ...]
-        return probabilities
+    def predict_step(
+        self,
+        image: torch.Tensor,  # (h, w)
+        batch_idx: int,
+        dataloader_idx: int = 0,
+    ) -> torch.Tensor:
+        """Tiled prediction."""
+        tiler = Tiler(
+            data_shape=image.shape,
+            tile_shape=TRAINING_IMAGE_DIMENSIONS,
+            overlap=0.2,
+            mode='reflect',
+        )
+        merger = Merger(tiler)
+        image = image.cpu().numpy()
+        for idx, tiles in tiler.iterate(image, batch_size=self.batch_size):
+            tiles = torch.as_tensor(
+                tiles, dtype=torch.float, device=self.device
+            )
+            tiles = normalise_2d(tiles)
+            tiles = rearrange(tiles, 'b h w -> b 1 h w')
+            prediction = self(tiles)
+            probabilities = F.softmax(prediction, dim=1)[:, 1, ...]
+            probabilities = probabilities.cpu().numpy()
+            merger.add_batch(
+                batch_id=idx,
+                batch_size=self.batch_size,
+                data=probabilities
+            )
+        return torch.tensor(merger.merge(unpad=True))
 
     def validation_epoch_end(self, batch_dice_scores):
         mean_dice_score = torch.mean(torch.as_tensor(batch_dice_scores))
@@ -114,13 +148,13 @@ class Fidder(pl.LightningModule):
 
     def optimizer_step(
         self,
-        epoch_idx,
-        batch_idx,
-        optimizer,
-        optimizer_i,
-        second_order_closure=None,
+        epoch_idx: int,
+        batch_idx: int,
+        optimizer: torch.optim.Optimizer,
+        optimizer_idx: int,
+        optimizer_closure: Optional[Callable[[], Any]] = None,
         **kwargs,
-    ):
+    ) -> None:
         self.log("learning rate", optimizer.param_groups[0]["lr"])
         if batch_idx == 0:  # call the scheduler after each validation
             self.scheduler.step(self.validation_dice_score)
@@ -130,5 +164,6 @@ class Fidder(pl.LightningModule):
                 f"num_bad_epochs: {self.scheduler.num_bad_epochs}"
             )  # for debugging
         super().optimizer_step(
-            epoch_idx, batch_idx, optimizer, optimizer_i, second_order_closure, **kwargs
+            epoch_idx, batch_idx, optimizer, optimizer_idx, optimizer_closure,
+            **kwargs
         )
