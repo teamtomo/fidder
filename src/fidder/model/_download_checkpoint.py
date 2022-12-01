@@ -5,10 +5,10 @@ import pooch
 # https://github.com/fatiando/pooch
 GOODBOY = pooch.create(
     path=pooch.os_cache("fidder"),
-    base_url="doi:10.5281/zenodo.7386349/",
+    base_url="doi:10.5281/zenodo.7386812/",
     registry={
-        "fidder.ckpt": "md5:17080b15a67c9224ab16c125499967fc"
-    }  # todo: update when new DOI active
+        "fidder.ckpt": "md5:020a01feb2f3f5bc5a2e519e6009f562"
+    }
 )
 
 
