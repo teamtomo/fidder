@@ -1,7 +1,10 @@
 from pathlib import Path
 
 import mrcfile
+import numpy as np
 import torch
+import torch.nn.functional as F
+import scipy.ndimage as ndi
 from einops import reduce, rearrange
 from torchvision.transforms import functional as TF
 
@@ -34,6 +37,33 @@ def rescale_2d_bicubic(
         image,
         size=short_edge_length,
         interpolation=TF.InterpolationMode.BICUBIC
+    )
+    return rescaled_image
+
+
+def rescale_2d_nearest(
+    image: torch.Tensor, factor: float
+) -> torch.Tensor:
+    """Rescale 2D image(s).
+
+    Parameters
+    ----------
+    image: torch.Tensor
+        `(b, c, h, w)` array of image(s).
+    factor: float
+        factor by which to rescale image(s).
+
+    Returns
+    -------
+    rescaled_image: torch.Tensor
+        `(b, c, h, w)` array of rescaled image(s).
+    """
+    _, h, w = TF.get_dimensions(image)
+    short_edge_length = int(factor * min(h, w))
+    rescaled_image = TF.resize(
+        image,
+        size=short_edge_length,
+        interpolation=TF.InterpolationMode.NEAREST
     )
     return rescaled_image
 
@@ -92,3 +122,30 @@ def estimate_background_std(image: torch.Tensor, mask: torch.Tensor):
 def get_pixel_spacing_from_header(image: Path):
     with mrcfile.open(image, header_only=True, permissive=True) as mrc:
         return tuple(mrc.header.voxel_size)
+
+
+def connected_component_transform_2d(mask: torch.Tensor):
+    """Perform a connected component transform on a binary 2D image.
+
+    A connected component transform replaces every pixel in a binary image with
+    the number of connected components in the region around that pixel.
+
+    Parameters
+    ----------
+    mask: torch.Tensor
+        `(h, w)` binary array
+
+    Returns
+    -------
+
+    """
+    labels, n = ndi.label(mask.cpu().numpy())
+    labels = torch.tensor(labels, dtype=torch.long)
+    labels_one_hot = F.one_hot(labels, num_classes=(n + 1))
+    counts = reduce(labels_one_hot, 'h w c -> c', reduction='sum')
+    counts = {
+        label_index: count.item()
+        for label_index, count in enumerate(counts)
+    }
+    connected_component_image = np.vectorize(counts.__getitem__)(labels)
+    return torch.tensor(connected_component_image)
