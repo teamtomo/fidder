@@ -1,6 +1,3 @@
-import os
-import shutil
-import subprocess
 from os import PathLike
 from pathlib import Path
 from typing import Tuple
@@ -14,12 +11,11 @@ from torch.utils.data import Dataset
 from torchvision.transforms import functional as TF
 
 from .augmentation import random_flip, random_square_crop_at_scale
-from .utils import calculate_resampling_factor
+from ..utils import calculate_resampling_factor
 from ..constants import TRAINING_IMAGE_DIMENSIONS, TRAINING_PIXEL_SIZE
 
 
 class FidderDataset(Dataset):
-
     """Fiducial segmentation dataset.
 
     https://zenodo.org/record/7104305
@@ -37,7 +33,8 @@ class FidderDataset(Dataset):
         "EMPIAR-10631": 1.38,
     }
 
-    def __init__(self, directory: PathLike, train: bool = True, download: bool = True):
+    def __init__(self, directory: PathLike, train: bool = True,
+                 download: bool = True):
         self.dataset_directory = Path(directory)
         self.image_directory = self.dataset_directory / "images"
         self.mask_directory = self.dataset_directory / "masks"
@@ -109,7 +106,8 @@ class FidderDataset(Dataset):
         image = TF.resize(
             image, target_size, interpolation=TF.InterpolationMode.BICUBIC
         )
-        mask = TF.resize(mask, target_size, interpolation=TF.InterpolationMode.NEAREST)
+        mask = TF.resize(mask, target_size,
+                         interpolation=TF.InterpolationMode.NEAREST)
 
         # augment if training, random crop if validating
         if self._is_training:
@@ -134,33 +132,19 @@ class FidderDataset(Dataset):
     def augment(
         self, image: torch.Tensor, mask: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        target_scale = np.prod(self.model.TRAINING_IMAGE_SHAPE) / np.prod(image.shape)
+        target_scale = np.prod(TRAINING_IMAGE_DIMENSIONS) / np.prod(image.shape)
         image, mask = random_square_crop_at_scale(
             image, mask, scale_range=[0.75 * target_scale, 1.33 * target_scale]
         )
         image = TF.resize(
             image,
-            size=self.model.TRAINING_IMAGE_SHAPE,
+            size=TRAINING_IMAGE_DIMENSIONS,
             interpolation=TF.InterpolationMode.BICUBIC
         )
         mask = TF.resize(
             mask,
-            size=self.model.TRAINING_IMAGE_SHAPE,
+            size=TRAINING_IMAGE_DIMENSIONS,
             interpolation=TF.InterpolationMode.NEAREST
         )
         image, mask = random_flip(image, mask, p=0.5)
         return image, mask
-
-    def _download_data(self):
-        subprocess.run(
-            [
-                "zenodo_get",
-                "7104305" "--output-dir",
-                str(self.dataset_directory.absolute()),
-            ]
-        )
-        shutil.unpack_archive(
-            self.dataset_directory / "fidder_data.zip",
-            extract_dir=self.dataset_directory,
-        )
-        os.remove(self.dataset_directory / "fidder_data.zip")

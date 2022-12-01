@@ -31,7 +31,12 @@ dependencies = [
     "torchvision",
     "einops",
     "imageio",
+    "mrcfile",
     "tiler",
+    "typer",
+    "rich",
+    "zenodo-get",
+    "pooch",
 ]
 
 # extras
@@ -109,6 +114,7 @@ minversion = "6.0"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
+    "ignore::DeprecationWarning"
 ]
 
 # https://mypy.readthedocs.io/en/stable/config_file.html

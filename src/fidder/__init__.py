@@ -14,7 +14,10 @@ __all__ = [
     "cli",
     "Fidder",
     "train_fidder",
+    "download_training_data"
 ]
 
 from ._cli import cli
-from .model import Fidder, train_fidder
+from .model import Fidder
+from .train import train_fidder
+from .data import download_training_data

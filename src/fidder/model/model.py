@@ -1,7 +1,6 @@
 from typing import Tuple, Optional, Callable, Any
 
 import pytorch_lightning as pl
-import tiler
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,7 +11,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from .dice import dice_loss, dice_score
 from .model_parts import Conv3x3, Down, Up
-from ..data.utils import normalise_2d
+from ..utils import normalise_2d
 from ..constants import TRAINING_IMAGE_DIMENSIONS
 
 
@@ -20,14 +19,15 @@ class Fidder(pl.LightningModule):
     """U-Net with ResNet18 style encoder."""
     in_channels: int = 1
     num_classes: int = 2
-    learning_rate: float = 2.75e-05
 
     def __init__(
-        self, batch_size: int = 4, learning_rate: float = 2.75e-05
+        self, batch_size: int = 4, learning_rate: float = 1e-05
     ):
         super().__init__()
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+
+        self.validation_dice_score = 0
 
         self.base_layer = nn.Sequential(
             nn.Conv2d(
@@ -103,7 +103,7 @@ class Fidder(pl.LightningModule):
     def predict_step(
         self,
         image: torch.Tensor,  # (h, w)
-        batch_idx: int,
+        batch_idx: int = 0,
         dataloader_idx: int = 0,
     ) -> torch.Tensor:
         """Tiled prediction."""
@@ -123,7 +123,7 @@ class Fidder(pl.LightningModule):
             tiles = rearrange(tiles, 'b h w -> b 1 h w')
             prediction = self(tiles)
             probabilities = F.softmax(prediction, dim=1)[:, 1, ...]
-            probabilities = probabilities.cpu().numpy()
+            probabilities = probabilities.detach().cpu().numpy()
             merger.add_batch(
                 batch_id=idx,
                 batch_size=self.batch_size,

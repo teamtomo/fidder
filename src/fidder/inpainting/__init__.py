@@ -1,0 +1,1 @@
+from .inpainting import inpaint

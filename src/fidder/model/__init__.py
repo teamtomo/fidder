@@ -1,4 +1,7 @@
 from .model import Fidder
-from .train import train_fidder
+from ._download_checkpoint import download_latest_checkpoint
 
-__all__ = ["Fidder", "train_fidder"]
+__all__ = [
+    "Fidder",
+    "download_latest_checkpoint",
+]
