@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional, Tuple
 
 import mrcfile
 import numpy as np
@@ -15,7 +16,9 @@ def calculate_resampling_factor(source: float, target: float) -> float:
 
 
 def rescale_2d_bicubic(
-    image: torch.Tensor, factor: float
+    image: torch.Tensor,
+    factor: Optional[float] = None,
+    size: Optional[Tuple[int, int]] = None,
 ) -> torch.Tensor:
     """Rescale 2D image(s).
 
@@ -31,18 +34,21 @@ def rescale_2d_bicubic(
     rescaled_image: torch.Tensor
         `(b, c, h, w)` array of rescaled image(s).
     """
-    _, h, w = TF.get_dimensions(image)
-    short_edge_length = int(factor * min(h, w))
+    if factor is not None:
+        _, h, w = TF.get_dimensions(image)
+        size = int(factor * min(h, w))
     rescaled_image = TF.resize(
         image,
-        size=short_edge_length,
+        size=size,
         interpolation=TF.InterpolationMode.BICUBIC
     )
     return rescaled_image
 
 
 def rescale_2d_nearest(
-    image: torch.Tensor, factor: float
+    image: torch.Tensor,
+    factor: Optional[float] = None,
+    size: Optional[Tuple[int, int]] = None
 ) -> torch.Tensor:
     """Rescale 2D image(s).
 
@@ -58,11 +64,12 @@ def rescale_2d_nearest(
     rescaled_image: torch.Tensor
         `(b, c, h, w)` array of rescaled image(s).
     """
-    _, h, w = TF.get_dimensions(image)
-    short_edge_length = int(factor * min(h, w))
+    if factor is not None:
+        _, h, w = TF.get_dimensions(image)
+        size = int(factor * min(h, w))
     rescaled_image = TF.resize(
         image,
-        size=short_edge_length,
+        size=size,
         interpolation=TF.InterpolationMode.NEAREST
     )
     return rescaled_image
@@ -119,9 +126,9 @@ def estimate_background_std(image: torch.Tensor, mask: torch.Tensor):
     return torch.std(image[mask == 0])
 
 
-def get_pixel_spacing_from_header(image: Path):
+def get_pixel_spacing_from_header(image: Path) -> float:
     with mrcfile.open(image, header_only=True, permissive=True) as mrc:
-        return tuple(mrc.header.voxel_size)
+        return float(mrc.voxel_size.x)
 
 
 def connected_component_transform_2d(mask: torch.Tensor):

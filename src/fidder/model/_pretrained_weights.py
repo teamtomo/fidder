@@ -12,6 +12,7 @@ GOODBOY = pooch.create(
 )
 
 
-def download_latest_checkpoint() -> Path:
+def get_latest_checkpoint() -> Path:
+    """Retrieve the latest checkpoint from cache if available or download."""
     checkpoint_file = Path(GOODBOY.fetch("fidder.ckpt"))
     return checkpoint_file

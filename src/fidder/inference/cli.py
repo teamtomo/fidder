@@ -3,8 +3,10 @@ from typing import Optional
 
 import einops
 import mrcfile
+import numpy as np
 import torch
 import torch.nn.functional as F
+import torchvision.transforms.functional as TF
 from einops import rearrange
 from typer import Option
 from scipy import ndimage as ndi
@@ -34,18 +36,33 @@ def predict_fiducial_mask(
     output_probabilities: Optional[Path] = Option(
         default=None, help='output probability image in ångströms'
     ),
+    checkpoint_file: Optional[Path] = None
 ):
     image = torch.tensor(mrcfile.read(input_image))
     if pixel_spacing is None:
         pixel_spacing = get_pixel_spacing_from_header(input_image)
-    rescale_factor = calculate_resampling_factor(
-        source=pixel_spacing, target=TRAINING_PIXEL_SIZE
+    image = rearrange(image, 'h w -> 1 h w')
+    probabilities = predict_fiducial_probabilities(
+        image=image,
+        pixel_spacing=pixel_spacing,
+        checkpoint_file=checkpoint_file,
     )
-    image = rearrange(image, 'h w -> 1 1 h w')
-    image = rescale_2d_bicubic(image, factor=rescale_factor)
-    image = rearrange(image, 'h w -> h w')
-    probabilities = predict_fiducial_probabilities(image, pixel_spacing)
-    mask = rearrange(probabilities > 0.2, '1 h w -> h w')
-
-
-
+    probabilities = probabilities.cpu().numpy()
+    probabilities = rearrange(probabilities, '1 h w -> h w')
+    mask = probabilities > 0.2
+    mask = mask.astype(np.int8)
+    output_pixel_spacing = (1, pixel_spacing, pixel_spacing)
+    mrcfile.write(
+        name=output_mask,
+        data=mask,
+        voxel_size=output_pixel_spacing,
+        overwrite=True
+    )
+    if output_probabilities is not None:
+        probabilities = probabilities.astype(np.float32)
+        mrcfile.write(
+            name=output_probabilities,
+            data=probabilities,
+            voxel_size=output_pixel_spacing,
+            overwrite=True
+        )

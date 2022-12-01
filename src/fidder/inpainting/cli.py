@@ -18,7 +18,7 @@ def erase_segmented_fiducials(
 ):
     image = torch.as_tensor(mrcfile.read(input_image))
     mask = torch.as_tensor(mrcfile.read(input_mask), dtype=torch.bool)
-    output_image = inpaint(
+    inpainted_image = inpaint(
         image=image,
         mask=mask,
         background_intensity_model_resolution=(8, 8),
@@ -27,7 +27,7 @@ def erase_segmented_fiducials(
     pixel_spacing = get_pixel_spacing_from_header(input_image)
     mrcfile.write(
         name=output,
-        data=np.array(output_image, dtype=np.float32),
+        data=np.array(inpainted_image, dtype=np.float32),
         voxel_size=pixel_spacing,
         overwrite=True,
     )

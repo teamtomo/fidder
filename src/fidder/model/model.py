@@ -21,11 +21,14 @@ class Fidder(pl.LightningModule):
     num_classes: int = 2
 
     def __init__(
-        self, batch_size: int = 4, learning_rate: float = 1e-05
+        self,
+        batch_size: int = 4,
+        learning_rate: float = 1e-05
     ):
         super().__init__()
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+        self.save_hyperparameters()
 
         self.validation_dice_score = 0
 
@@ -159,9 +162,11 @@ class Fidder(pl.LightningModule):
         if batch_idx == 0:  # call the scheduler after each validation
             self.scheduler.step(self.validation_dice_score)
             print(
+                "\n"
                 f"validation dice: {self.validation_dice_score}, "
                 f"best: {self.scheduler.best}, "
                 f"num_bad_epochs: {self.scheduler.num_bad_epochs}"
+                "\n"
             )  # for debugging
         super().optimizer_step(
             epoch_idx, batch_idx, optimizer, optimizer_idx, optimizer_closure,
