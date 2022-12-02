@@ -113,7 +113,7 @@ class Fidder(pl.LightningModule):
         tiler = Tiler(
             data_shape=image.shape,
             tile_shape=TRAINING_IMAGE_DIMENSIONS,
-            overlap=0.2,
+            overlap=0.35,
             mode='reflect',
         )
         merger = Merger(tiler)

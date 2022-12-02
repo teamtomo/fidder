@@ -16,7 +16,7 @@ def train_fidder(
     gradient_steps: int = 600,
     learning_rate: float = 1e-5,
 ) -> None:
-    """Train Fidder for fiducial segmentation."""
+    """Train a semantic segmentation model for fiducial detection."""
     model = Fidder(batch_size=batch_size, learning_rate=learning_rate)
     data_module = FidderDataModule(dataset_directory)
 

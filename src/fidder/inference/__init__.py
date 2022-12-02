@@ -1,1 +1,1 @@
-from .predict import predict_fiducial_probabilities
+from .predict_mask import predict_fiducial_mask

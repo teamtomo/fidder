@@ -16,6 +16,7 @@ def erase_segmented_fiducials(
     input_mask: Path = Option(..., help='mask file in MRC format', **PKWARGS),
     output: Path = Option(..., help='output file', **PKWARGS),
 ):
+    """Erase a masked region of a cryo-EM image."""
     image = torch.as_tensor(mrcfile.read(input_image))
     mask = torch.as_tensor(mrcfile.read(input_mask), dtype=torch.bool)
     inpainted_image = inpaint(

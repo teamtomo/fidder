@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import napari
+
 from fidder.inference.cli import predict_fiducial_mask
 from fidder.inpainting.cli import erase_segmented_fiducials
 
@@ -12,9 +14,10 @@ erased = Path(image.stem + '_erased.mrc')
 predict_fiducial_mask(
     input_image=image,
     pixel_spacing=None,
+    probability_threshold=0.5,
     output_mask=mask,
     output_probabilities=probabilities,
-    checkpoint_file=checkpoint
+    model_checkpoint_file=checkpoint
 )
 
 erase_segmented_fiducials(
@@ -22,3 +25,6 @@ erase_segmented_fiducials(
     input_mask=mask,
     output=erased,
 )
+
+viewer = napari.Viewer()
+napari.run()

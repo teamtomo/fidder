@@ -1,23 +1,14 @@
 from pathlib import Path
 from typing import Optional
 
-import einops
 import mrcfile
 import numpy as np
 import torch
-import torch.nn.functional as F
-import torchvision.transforms.functional as TF
-from einops import rearrange
 from typer import Option
-from scipy import ndimage as ndi
 
-from ..constants import TRAINING_PIXEL_SIZE
-from .predict import predict_fiducial_probabilities
+from .predict_mask import predict_fiducial_mask as _predict_fiducial_mask
 from ..utils import (
     get_pixel_spacing_from_header,
-    calculate_resampling_factor,
-    rescale_2d_bicubic,
-    rescale_2d_nearest,
 )
 from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 
@@ -25,32 +16,41 @@ from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 @cli.command(name='predict', no_args_is_help=True)
 def predict_fiducial_mask(
     input_image: Path = Option(
-        default=..., help='input image file in MRC format', **PKWARGS
+        default=...,
+        help='input image file in MRC format',
+        **PKWARGS
     ),
     pixel_spacing: Optional[float] = Option(
-        default=None, help='pixel spacing in ångströms'
+        default=None,
+        help='pixel spacing in ångströms'
+    ),
+    probability_threshold: float = Option(
+        default=0.5,
+        help='threshold above which a pixel is considered part of a fiducial'
     ),
     output_mask: Path = Option(
-        default=..., help='output mask file in MRC format', **PKWARGS
+        default=...,
+        help='output mask file in MRC format',
+        **PKWARGS
     ),
     output_probabilities: Optional[Path] = Option(
-        default=None, help='output probability image in ångströms'
+        default=None,
+        help='output probability image in ångströms'
     ),
-    checkpoint_file: Optional[Path] = None
+    model_checkpoint_file: Optional[Path] = None
 ):
+    """Predict a fiducial mask using a pretrained model."""
     image = torch.tensor(mrcfile.read(input_image))
     if pixel_spacing is None:
         pixel_spacing = get_pixel_spacing_from_header(input_image)
-    image = rearrange(image, 'h w -> 1 h w')
-    probabilities = predict_fiducial_probabilities(
+    mask, probabilities = _predict_fiducial_mask(
         image=image,
         pixel_spacing=pixel_spacing,
-        checkpoint_file=checkpoint_file,
+        mask_threshold=probability_threshold,
+        model_checkpoint_file=model_checkpoint_file,
     )
+    mask = mask.cpu().numpy().astype(np.int8)
     probabilities = probabilities.cpu().numpy()
-    probabilities = rearrange(probabilities, '1 h w -> h w')
-    mask = probabilities > 0.2
-    mask = mask.astype(np.int8)
     output_pixel_spacing = (1, pixel_spacing, pixel_spacing)
     mrcfile.write(
         name=output_mask,

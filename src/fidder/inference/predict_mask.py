@@ -1,36 +1,38 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
-import numpy as np
 import torch
 import torchvision.transforms.functional as TF
 from einops import rearrange
 from pytorch_lightning import Trainer
 
 from ..model import Fidder, get_latest_checkpoint
-from ..utils import calculate_resampling_factor, rescale_2d_bicubic
-from ..constants import TRAINING_PIXEL_SIZE
+from ..utils import calculate_resampling_factor, rescale_2d_bicubic, \
+    rescale_2d_nearest
+from ..constants import TRAINING_PIXEL_SIZE, PIXELS_PER_FIDUCIAL
+from .probabilities_to_mask import probabilities_to_mask
 
 
-def predict_fiducial_probabilities(
+def predict_fiducial_mask(
     image: torch.Tensor,
     pixel_spacing: float,
-    checkpoint_file: Optional[Path] = None
-) -> np.ndarray:
+    mask_threshold: float,
+    model_checkpoint_file: Optional[Path] = None,
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """Predict fiducial masks for a batch of arbitrarily sized images.
 
 
     Parameters
     ----------
     image: torch.Tensor
-        `(h, w)` or `(b, h, w)` array containing image data.
+        `(h, w)` array containing image data.
     pixel_spacing: float
         Isotropic pixel spacing in Angstroms per pixel.
 
     Returns
     -------
-    probabilities: torch.Tensor
-        `(b, h, w)` array containing the probability of each pixel belonging to a fiducial.
+    mask, probabilities: Tuple[torch.Tensor, torch.Tensor]
+        `(h, w)` arrays containing the probability of each pixel belonging to a fiducial.
     """
     if image.ndim == 2:
         image = rearrange(image, 'h w -> 1 1 h w')
@@ -42,14 +44,22 @@ def predict_fiducial_probabilities(
         source=pixel_spacing, target=TRAINING_PIXEL_SIZE
     )
     image = rescale_2d_bicubic(image, factor=downscale_factor)
-
-    if checkpoint_file is None:
-        checkpoint_file = get_latest_checkpoint()
-    model = Fidder.load_from_checkpoint(checkpoint_file)
+    if model_checkpoint_file is None:
+        model_checkpoint_file = get_latest_checkpoint()
+    model = Fidder.load_from_checkpoint(model_checkpoint_file)
     model.eval()
     image = rearrange(image, '1 1 h w -> 1 h w')
     [probabilities] = Trainer(accelerator="auto").predict(model, image)
+    mask = probabilities_to_mask(
+        probabilities=probabilities,
+        threshold=mask_threshold,
+        connected_pixel_count_threshold=(PIXELS_PER_FIDUCIAL // 4)
+    )
     probabilities = rearrange(probabilities, 'h w -> 1 1 h w')
     probabilities = rescale_2d_bicubic(probabilities, size=(h, w))
     probabilities = torch.clamp(probabilities, min=0, max=1)
-    return rearrange(probabilities, 'b 1 h w -> b h w')
+    rearrange(probabilities, '1 1 h w -> h w')
+    mask = rearrange(mask, 'h w -> 1 1 h w')
+    mask = rescale_2d_nearest(mask, size=(h, w))
+    mask = rearrange(mask, '1 1 h w -> h w')
+    return mask, probabilities
