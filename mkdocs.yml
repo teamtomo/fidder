@@ -1,0 +1,56 @@
+site_name: fidder
+site_url: https://teamtomo.org/fidder
+site_author: teamtomo
+site_description: >-
+  Documentation for fidder: detect and segment fiducials in cryo-EM images.
+repo_name: teamtomo/fidder
+repo_url: https://github.com/teamtomo/fidder
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2022 - 2022 teamtomo
+
+
+nav:
+  - index.md
+#  - Usage:
+#      - usage/python.md
+#      - usage/command_line.md
+
+theme:
+  icon:
+    logo: material/cube-outline
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+
+  features:
+    - navigation.instant
+    - navigation.expand
+    - search.highlight
+    - search.suggest
+    - content.tabs.link
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+
+plugins:
+  - search
+
+extra_css:
+  - stylesheets/extra.css

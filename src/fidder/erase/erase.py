@@ -104,6 +104,7 @@ def _erase_single_image(
     # add noise with mean=0 std=background std estimate
     background_std = estimate_background_std(image, mask)
     n_pixels_to_inpaint = idx_foreground[0].shape[0]
-    noise = np.random.normal(loc=0, scale=background_std, size=n_pixels_to_inpaint)
+    noise = np.random.normal(loc=0, scale=background_std,
+                             size=n_pixels_to_inpaint)
     inpainted_image[idx_foreground] += torch.as_tensor(noise)
     return inpainted_image
