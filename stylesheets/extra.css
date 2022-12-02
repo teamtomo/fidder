@@ -1,0 +1,7 @@
+  .img-comparison-slider {
+    --default-handle-width: 100px;
+  }
+
+  .img-comparison-slider:focus {
+    --default-handle-opacity: 0;
+  }
