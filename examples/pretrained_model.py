@@ -1,11 +1,9 @@
 from pathlib import Path
 
-import napari
-
 from fidder.predict.cli import predict_fiducial_mask
 from fidder.erase.cli import erase_segmented_fiducials
 
-image = Path('Pos10_ts_001_0001_-0_0.mrc')
+image = Path('TS_01_0deg_bin8.mrc')
 mask = Path(image.stem + '_mask.mrc')
 probabilities = Path(image.stem + '_probabilities.mrc')
 checkpoint = Path(
