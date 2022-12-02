@@ -6,9 +6,7 @@ import pooch
 GOODBOY = pooch.create(
     path=pooch.os_cache("fidder"),
     base_url="doi:10.5281/zenodo.7386812/",
-    registry={
-        "fidder.ckpt": "md5:020a01feb2f3f5bc5a2e519e6009f562"
-    }
+    registry={"fidder.ckpt": "md5:020a01feb2f3f5bc5a2e519e6009f562"},
 )
 
 

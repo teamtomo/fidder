@@ -57,8 +57,7 @@ def dice_score(ground_truth: torch.Tensor, logits: torch.Tensor):
     ground_truth_one_hot = F.one_hot(ground_truth, num_classes=c).float()
     ground_truth_one_hot = rearrange(ground_truth_one_hot, "b h w c -> b c h w")
     probabilities = torch.softmax(logits, dim=1)
-    dice = dice_coefficient(probabilities, ground_truth_one_hot,
-                            batched_input=True)
+    dice = dice_coefficient(probabilities, ground_truth_one_hot, batched_input=True)
     return torch.mean(dice)
 
 

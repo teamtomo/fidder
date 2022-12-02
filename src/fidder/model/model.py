@@ -17,14 +17,11 @@ from ..constants import TRAINING_IMAGE_DIMENSIONS
 
 class Fidder(pl.LightningModule):
     """U-Net with ResNet18 style encoder."""
+
     in_channels: int = 1
     num_classes: int = 2
 
-    def __init__(
-        self,
-        batch_size: int = 4,
-        learning_rate: float = 1e-05
-    ):
+    def __init__(self, batch_size: int = 4, learning_rate: float = 1e-05):
         super().__init__()
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -59,8 +56,7 @@ class Fidder(pl.LightningModule):
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out",
-                                        nonlinearity="relu")
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
@@ -114,23 +110,19 @@ class Fidder(pl.LightningModule):
             data_shape=image.shape,
             tile_shape=TRAINING_IMAGE_DIMENSIONS,
             overlap=0.35,
-            mode='reflect',
+            mode="reflect",
         )
         merger = Merger(tiler)
         image = image.cpu().numpy()
         for idx, tiles in tiler.iterate(image, batch_size=self.batch_size):
-            tiles = torch.as_tensor(
-                tiles, dtype=torch.float, device=self.device
-            )
+            tiles = torch.as_tensor(tiles, dtype=torch.float, device=self.device)
             tiles = normalise_2d(tiles)
-            tiles = rearrange(tiles, 'b h w -> b 1 h w')
+            tiles = rearrange(tiles, "b h w -> b 1 h w")
             prediction = self(tiles)
             probabilities = F.softmax(prediction, dim=1)[:, 1, ...]
             probabilities = probabilities.detach().cpu().numpy()
             merger.add_batch(
-                batch_id=idx,
-                batch_size=self.batch_size,
-                data=probabilities
+                batch_id=idx, batch_size=self.batch_size, data=probabilities
             )
         return torch.tensor(merger.merge(unpad=True))
 
@@ -169,6 +161,5 @@ class Fidder(pl.LightningModule):
                 "\n"
             )  # for debugging
         super().optimizer_step(
-            epoch_idx, batch_idx, optimizer, optimizer_idx, optimizer_closure,
-            **kwargs
+            epoch_idx, batch_idx, optimizer, optimizer_idx, optimizer_closure, **kwargs
         )

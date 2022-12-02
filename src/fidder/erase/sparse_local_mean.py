@@ -9,7 +9,7 @@ def estimate_local_mean(
     image: torch.Tensor,
     mask: Optional[torch.Tensor] = None,
     resolution: Tuple[int, int] = (5, 5),
-    n_samples_for_fit: int = 20000
+    n_samples_for_fit: int = 20000,
 ):
     """Estimate local mean of an image with a bivariate cubic spline.
 
@@ -44,9 +44,7 @@ def estimate_local_mean(
     if n_background_samples := len(foreground_sample_idx) < n_samples_for_fit:
         n_samples_for_fit = n_background_samples
     selection = np.random.choice(
-        foreground_sample_idx.shape[0],
-        size=n_samples_for_fit,
-        replace=False
+        foreground_sample_idx.shape[0], size=n_samples_for_fit, replace=False
     )
     foreground_sample_idx = foreground_sample_idx[selection]
     y, x = foreground_sample_idx[:, 0], foreground_sample_idx[:, 1]

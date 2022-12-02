@@ -6,38 +6,34 @@ import numpy as np
 import torch
 from typer import Option
 
-from .predict_mask import predict_fiducial_mask as _predict_fiducial_mask
+from .predict import predict_fiducial_mask as _predict_fiducial_mask
 from ..utils import (
     get_pixel_spacing_from_header,
 )
 from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 
 
-@cli.command(name='predict', no_args_is_help=True)
+@cli.command(name="predict", no_args_is_help=True)
 def predict_fiducial_mask(
     input_image: Path = Option(
-        default=...,
-        help='input image file in MRC format',
-        **PKWARGS
+        default=..., help="Input image file in MRC format.", **PKWARGS
     ),
     pixel_spacing: Optional[float] = Option(
-        default=None,
-        help='pixel spacing in ångströms'
+        default=None, help="Pixel spacing in ångströms."
     ),
     probability_threshold: float = Option(
         default=0.5,
-        help='threshold above which a pixel is considered part of a fiducial'
+        help="Threshold above which pixels are considered part of a fiducial.",
     ),
     output_mask: Path = Option(
-        default=...,
-        help='output mask file in MRC format',
-        **PKWARGS
+        default=..., help="Output mask file in MRC format.", **PKWARGS
     ),
     output_probabilities: Optional[Path] = Option(
-        default=None,
-        help='output probability image in ångströms'
+        default=None, help="Output probability image file in MRC format."
     ),
-    model_checkpoint_file: Optional[Path] = None
+    model_checkpoint_file: Optional[Path] = Option(
+        default=None, help="File containing segmentation model checkpoint."
+    ),
 ):
     """Predict a fiducial mask using a pretrained model."""
     image = torch.tensor(mrcfile.read(input_image))
@@ -53,10 +49,7 @@ def predict_fiducial_mask(
     probabilities = probabilities.cpu().numpy()
     output_pixel_spacing = (1, pixel_spacing, pixel_spacing)
     mrcfile.write(
-        name=output_mask,
-        data=mask,
-        voxel_size=output_pixel_spacing,
-        overwrite=True
+        name=output_mask, data=mask, voxel_size=output_pixel_spacing, overwrite=True
     )
     if output_probabilities is not None:
         probabilities = probabilities.astype(np.float32)
@@ -64,5 +57,5 @@ def predict_fiducial_mask(
             name=output_probabilities,
             data=probabilities,
             voxel_size=output_pixel_spacing,
-            overwrite=True
+            overwrite=True,
         )

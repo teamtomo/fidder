@@ -14,7 +14,7 @@ def test_inpaint_2d_tensor():
             image,
             mask,
             background_intensity_model_resolution=(5, 5),
-            background_intensity_model_samples=200
+            background_intensity_model_samples=200,
         )
     assert inpainted.shape == image.shape
 
@@ -28,6 +28,6 @@ def test_inpaint_3d_tensor():
             image=image,
             mask=mask,
             background_intensity_model_resolution=(5, 5),
-            background_intensity_model_samples=200
+            background_intensity_model_samples=200,
         )
     assert inpainted.shape == image.shape

@@ -8,15 +8,7 @@ def test_connected_component_transform_2d():
     mask[::2, ::2] = 1
     mask[1::2, 1::2] = 1
     connected_component_image = connected_component_transform_2d(mask)
-    assert torch.allclose(
-        connected_component_image[::2, ::2], torch.tensor(1)
-    )
-    assert torch.allclose(
-        connected_component_image[1::2, 1::2], torch.tensor(1)
-    )
-    assert torch.allclose(
-        connected_component_image[1::2, ::2], torch.tensor(50)
-    )
-    assert torch.allclose(
-        connected_component_image[::2, 1::2], torch.tensor(50)
-    )
+    assert torch.allclose(connected_component_image[::2, ::2], torch.tensor(1))
+    assert torch.allclose(connected_component_image[1::2, 1::2], torch.tensor(1))
+    assert torch.allclose(connected_component_image[1::2, ::2], torch.tensor(50))
+    assert torch.allclose(connected_component_image[::2, 1::2], torch.tensor(50))

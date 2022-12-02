@@ -38,9 +38,7 @@ def rescale_2d_bicubic(
         _, h, w = TF.get_dimensions(image)
         size = int(factor * min(h, w))
     rescaled_image = TF.resize(
-        image,
-        size=size,
-        interpolation=TF.InterpolationMode.BICUBIC
+        image, size=size, interpolation=TF.InterpolationMode.BICUBIC
     )
     return rescaled_image
 
@@ -48,7 +46,7 @@ def rescale_2d_bicubic(
 def rescale_2d_nearest(
     image: torch.Tensor,
     factor: Optional[float] = None,
-    size: Optional[Tuple[int, int]] = None
+    size: Optional[Tuple[int, int]] = None,
 ) -> torch.Tensor:
     """Rescale 2D image(s).
 
@@ -68,24 +66,20 @@ def rescale_2d_nearest(
         _, h, w = TF.get_dimensions(image)
         size = int(factor * min(h, w))
     rescaled_image = TF.resize(
-        image,
-        size=size,
-        interpolation=TF.InterpolationMode.NEAREST
+        image, size=size, interpolation=TF.InterpolationMode.NEAREST
     )
     return rescaled_image
 
 
 def normalise_2d(image: torch.Tensor) -> torch.Tensor:
     """Normalise 2D image(s) to mean=0 std=1."""
-    mean = reduce(image, '... h w -> ... 1 1', reduction='mean')
+    mean = reduce(image, "... h w -> ... 1 1", reduction="mean")
     std = torch.std(image, dim=[-2, -1])
-    std = rearrange(std, '... -> ... 1 1')
+    std = rearrange(std, "... -> ... 1 1")
     return (image - mean) / std
 
 
-def central_crop_2d(
-    image: torch.Tensor, percentage: float = 25
-) -> torch.Tensor:
+def central_crop_2d(image: torch.Tensor, percentage: float = 25) -> torch.Tensor:
     """Get a central crop of (a batch of) 2D image(s).
 
     Parameters
@@ -149,10 +143,7 @@ def connected_component_transform_2d(mask: torch.Tensor):
     labels, n = ndi.label(mask.cpu().numpy())
     labels = torch.tensor(labels, dtype=torch.long)
     labels_one_hot = F.one_hot(labels, num_classes=(n + 1))
-    counts = reduce(labels_one_hot, 'h w c -> c', reduction='sum')
-    counts = {
-        label_index: count.item()
-        for label_index, count in enumerate(counts)
-    }
+    counts = reduce(labels_one_hot, "h w c -> c", reduction="sum")
+    counts = {label_index: count.item() for label_index, count in enumerate(counts)}
     connected_component_image = np.vectorize(counts.__getitem__)(labels)
     return torch.tensor(connected_component_image)

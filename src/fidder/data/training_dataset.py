@@ -25,6 +25,7 @@ class FidderDataset(Dataset):
       before being passed to the network
     - train/eval mode activated via methods of the same name
     """
+
     PIXEL_SIZE_MAP = {
         "EMPIAR-10164": 1.35,
         "EMPIAR-10814": 2.96,
@@ -33,8 +34,7 @@ class FidderDataset(Dataset):
         "EMPIAR-10631": 1.38,
     }
 
-    def __init__(self, directory: PathLike, train: bool = True,
-                 download: bool = True):
+    def __init__(self, directory: PathLike, train: bool = True, download: bool = True):
         self.dataset_directory = Path(directory)
         self.image_directory = self.dataset_directory / "images"
         self.mask_directory = self.dataset_directory / "masks"
@@ -106,8 +106,7 @@ class FidderDataset(Dataset):
         image = TF.resize(
             image, target_size, interpolation=TF.InterpolationMode.BICUBIC
         )
-        mask = TF.resize(mask, target_size,
-                         interpolation=TF.InterpolationMode.NEAREST)
+        mask = TF.resize(mask, target_size, interpolation=TF.InterpolationMode.NEAREST)
 
         # augment if training, random crop if validating
         if self._is_training:
@@ -139,12 +138,12 @@ class FidderDataset(Dataset):
         image = TF.resize(
             image,
             size=TRAINING_IMAGE_DIMENSIONS,
-            interpolation=TF.InterpolationMode.BICUBIC
+            interpolation=TF.InterpolationMode.BICUBIC,
         )
         mask = TF.resize(
             mask,
             size=TRAINING_IMAGE_DIMENSIONS,
-            interpolation=TF.InterpolationMode.NEAREST
+            interpolation=TF.InterpolationMode.NEAREST,
         )
         image, mask = random_flip(image, mask, p=0.5)
         return image, mask

@@ -15,8 +15,8 @@ def test_dice_coefficient():
     b[6:, 6:] = 1
     b[6:, :3] = 2
 
-    a = rearrange(F.one_hot(a.long(), num_classes=3), 'h w c -> c h w')
-    b = rearrange(F.one_hot(b.long(), num_classes=3), 'h w c -> c h w')
+    a = rearrange(F.one_hot(a.long(), num_classes=3), "h w c -> c h w")
+    b = rearrange(F.one_hot(b.long(), num_classes=3), "h w c -> c h w")
     dice = dice_coefficient(a, b, batched_input=False)
     assert torch.allclose(dice, torch.tensor([0.82, 0.78, 0.64]), atol=1e-2)
 
@@ -31,7 +31,7 @@ def test_dice_coefficient_batched_input():
     b[:, 6:, 6:] = 1
     b[:, 6:, :3] = 2
 
-    a = rearrange(F.one_hot(a.long(), num_classes=3), 'b h w c -> b c h w')
-    b = rearrange(F.one_hot(b.long(), num_classes=3), 'b h w c -> b c h w')
+    a = rearrange(F.one_hot(a.long(), num_classes=3), "b h w c -> b c h w")
+    b = rearrange(F.one_hot(b.long(), num_classes=3), "b h w c -> b c h w")
     dice = dice_coefficient(a, b, batched_input=True)
     assert torch.allclose(dice, torch.tensor([0.82, 0.78, 0.64]), atol=1e-2)
