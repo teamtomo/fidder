@@ -9,4 +9,4 @@ fidder predict \
 fidder erase \
 --input-image example.mrc \
 --input-mask example_mask.mrc \
---output example_erased.mrc \
+--output-image example_erased.mrc \

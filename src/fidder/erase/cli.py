@@ -13,10 +13,20 @@ from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 @cli.command(name="erase", no_args_is_help=True)
 def erase_segmented_fiducials(
     input_image: Path = Option(
-        default=..., help="Image file in MRC format.", **PKWARGS
+        default=...,
+        help="Image file in MRC format.",
+        **PKWARGS
     ),
-    input_mask: Path = Option(default=..., help="Mask file in MRC format.", **PKWARGS),
-    output: Path = Option(default=..., help="Output file in MRC format.", **PKWARGS),
+    input_mask: Path = Option(
+        default=...,
+        help="Mask file in MRC format.",
+        **PKWARGS
+    ),
+    output_image: Path = Option(
+        default=...,
+        help="Output file in MRC format.",
+        **PKWARGS
+    ),
 ):
     """Erase a masked region in a cryo-EM image."""
     image = torch.as_tensor(mrcfile.read(input_image)).squeeze()
@@ -29,7 +39,7 @@ def erase_segmented_fiducials(
     )
     pixel_spacing = get_pixel_spacing_from_header(input_image)
     mrcfile.write(
-        name=output,
+        name=output_image,
         data=np.array(inpainted_image, dtype=np.float32),
         voxel_size=pixel_spacing,
         overwrite=True,

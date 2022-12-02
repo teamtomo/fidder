@@ -1,4 +1,4 @@
-site_name: teamtomo docs template
+site_name: fidder
 site_url: https://teamtomo.org/fidder
 site_author: teamtomo
 site_description: >-
@@ -10,11 +10,11 @@ edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2022 - 2022 teamtomo
 
 
-# Custom navigation can be specified
-#nav:
-#  - Overview: index.md
-#  - Section:
-#      - Title: directory/file.md
+nav:
+  - index.md
+#  - Usage:
+#      - usage/python.md
+#      - usage/command_line.md
 
 theme:
   icon:
@@ -28,6 +28,7 @@ theme:
 
   features:
     - navigation.instant
+    - navigation.expand
     - search.highlight
     - search.suggest
     - content.tabs.link
