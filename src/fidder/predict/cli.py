@@ -42,7 +42,7 @@ def predict_fiducial_mask(
     mask, probabilities = _predict_fiducial_mask(
         image=image,
         pixel_spacing=pixel_spacing,
-        mask_threshold=probability_threshold,
+        probability_threshold=probability_threshold,
         model_checkpoint_file=model_checkpoint_file,
     )
     mask = mask.cpu().numpy().astype(np.int8)
