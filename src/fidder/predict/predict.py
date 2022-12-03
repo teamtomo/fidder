@@ -15,7 +15,7 @@ from .probabilities_to_mask import probabilities_to_mask
 def predict_fiducial_mask(
     image: torch.Tensor,
     pixel_spacing: float,
-    mask_threshold: float,
+    probability_threshold: float,
     model_checkpoint_file: Optional[Path] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Predict fiducial masks for a batch of arbitrarily sized images.
@@ -55,7 +55,7 @@ def predict_fiducial_mask(
     [probabilities] = Trainer(accelerator="auto").predict(model, image)
     mask = probabilities_to_mask(
         probabilities=probabilities,
-        threshold=mask_threshold,
+        threshold=probability_threshold,
         connected_pixel_count_threshold=(PIXELS_PER_FIDUCIAL // 4),
     )
 

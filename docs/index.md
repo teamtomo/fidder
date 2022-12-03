@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/teamtomo/fidder/branch/main/graph/badge.svg)](https://codecov.io/gh/teamtomo/fidder)
 
 
-*fidder* is a package for detecting and erasing gold fiducials in cryo-EM
+*fidder* is a Python package for detecting and erasing gold fiducials in cryo-EM
 images.
 
 <script
@@ -31,6 +31,7 @@ and the
 # Quickstart
 
 ## Python
+
 ```python
 import mrcfile
 import torch
@@ -41,7 +42,9 @@ from fidder.erase import erase_masked_region
 image = torch.tensor(mrcfile.read('my_image_file.mrc'))
 
 # use a pretrained model to predict a mask
-mask, probabilities = predict_fiducial_mask(image, pixel_spacing=1.35)
+mask, probabilities = predict_fiducial_mask(
+    image, pixel_spacing=1.35, probability_threshold=0.5
+)
 
 # erase fiducials
 erased_image = erase_masked_region(image=image, mask=mask)
@@ -52,6 +55,7 @@ erased_image = erase_masked_region(image=image, mask=mask)
 # predict fiducial mask
 fidder predict \
 --input-image example.mrc \
+--probability-threshold 0.5 \
 --output-mask mask.mrc
 
 # erase masked region
