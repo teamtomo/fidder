@@ -290,7 +290,7 @@
 <a href="https://python.org"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/fidder.svg?color=green" /></a>
 <a href="https://github.com/teamtomo/fidder/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/teamtomo/fidder/actions/workflows/ci.yml/badge.svg" /></a>
 <a href="https://codecov.io/gh/teamtomo/fidder"><img alt="codecov" src="https://codecov.io/gh/teamtomo/fidder/branch/main/graph/badge.svg" /></a></p>
-<p><em>fidder</em> is a package for detecting and erasing gold fiducials in cryo-EM
+<p><em>fidder</em> is a Python package for detecting and erasing gold fiducials in cryo-EM
 images.</p>
 <p><script
   defer
@@ -317,7 +317,9 @@ and the
 <span class="n">image</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">mrcfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;my_image_file.mrc&#39;</span><span class="p">))</span>
 
 <span class="c1"># use a pretrained model to predict a mask</span>
-<span class="n">mask</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="n">predict_fiducial_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">pixel_spacing</span><span class="o">=</span><span class="mf">1.35</span><span class="p">)</span>
+<span class="n">mask</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="n">predict_fiducial_mask</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">,</span> <span class="n">pixel_spacing</span><span class="o">=</span><span class="mf">1.35</span><span class="p">,</span> <span class="n">probability_threshold</span><span class="o">=</span><span class="mf">0.5</span>
+<span class="p">)</span>
 
 <span class="c1"># erase fiducials</span>
 <span class="n">erased_image</span> <span class="o">=</span> <span class="n">erase_masked_region</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
@@ -326,6 +328,7 @@ and the
 <div class="highlight"><pre><span></span><code><span class="c1"># predict fiducial mask</span>
 fidder predict <span class="se">\</span>
 --input-image example.mrc <span class="se">\</span>
+--probability-threshold <span class="m">0</span>.5 <span class="se">\</span>
 --output-mask mask.mrc
 
 <span class="c1"># erase masked region</span>
