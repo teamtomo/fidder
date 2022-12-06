@@ -21,6 +21,10 @@ images.
   <img slot="second" src="https://user-images.githubusercontent.com/7307488/205206583-c9df5cdb-2034-484b-99d2-ce07827e90e3.png" />
 </img-comparison-slider>
 
+Fiducials are detected using a pre-trained residual 2D U-Net pre-trained 
+for semantic segmentation at 8 Å/px. Segmented regions are replaced with white 
+noise matching the local mean and global standard deviation of the image.
+
 The package can be used from both
 [Python](usage/python.md)
 and the
