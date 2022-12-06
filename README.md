@@ -11,8 +11,7 @@
 images.
 
 <p align="center" width="100%">
-    <img width="80%" src="https://user-images.githubusercontent.
-com/7307488/205998768-5808c399-6801-4ade-89ee-771a7202908f.png">
+    <img width="80%" src="https://user-images.githubusercontent.com/7307488/205998768-5808c399-6801-4ade-89ee-771a7202908f.png">
 </p>
 
 Fiducials are detected using a pre-trained residual 2D U-Net pre-trained 
