@@ -5,8 +5,8 @@ import pooch
 # https://github.com/fatiando/pooch
 GOODBOY = pooch.create(
     path=pooch.os_cache("fidder"),
-    base_url="doi:10.5281/zenodo.7386812/",
-    registry={"fidder.ckpt": "md5:020a01feb2f3f5bc5a2e519e6009f562"},
+    base_url="doi:10.5281/zenodo.7406503/",
+    registry={"fidder.ckpt": "md5:9df1775c157c5b368742e2dbc33f5b10"},
 )
 
 
