@@ -25,9 +25,9 @@ and the
 
 ---
 
-# Quickstart
+## Quickstart
 
-## Python
+### Python
 
 ```python
 import mrcfile
@@ -46,7 +46,7 @@ mask, probabilities = predict_fiducial_mask(
 # erase fiducials
 erased_image = erase_masked_region(image=image, mask=mask)
 ```
-## Command Line
+### Command Line
 
 ```bash
 # predict fiducial mask
@@ -65,10 +65,22 @@ fidder erase \
 
 ---
 
-# Installation
+## Installation
 
 pip:
 
 ```shell
 pip install fidder
 ```
+
+## Notes
+
+This package provides similar functionality to 
+[BoxNet](http://www.warpem.com/warp/?page_id=135) from Warp
+when 
+[retrained for gold fiducial segmentation](http://www.warpem.com/warp/?page_id=137).
+
+This package was developed to make this functionality available in a standalone, 
+easy to install Python package. The architecture and training data 
+preprocessing are based on the description in the 
+[Warp paper](https://doi.org/10.1038/s41592-019-0580-y).
