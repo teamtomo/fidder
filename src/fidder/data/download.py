@@ -12,7 +12,7 @@ def download_training_data(output_directory: Path):
     subprocess.run(
         [
             "zenodo_get",
-            "7404985",
+            "7660739",
             "--output-dir",
             str(output_directory),
         ]
