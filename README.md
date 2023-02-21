@@ -14,8 +14,7 @@ images.
     <img width="80%" src="https://user-images.githubusercontent.com/7307488/205998768-5808c399-6801-4ade-89ee-771a7202908f.png">
 </p>
 
-Fiducials are detected using a pre-trained residual 2D U-Net pre-trained 
-for semantic segmentation at 8 Å/px. Segmented regions are replaced with white 
+Fiducials are detected using a pre-trained residual 2D U-Net at 8 Å/px. Segmented regions are replaced with white 
 noise matching the local mean and global standard deviation of the image.
 
 The package can be used from both
