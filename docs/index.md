@@ -80,7 +80,13 @@ pip:
 pip install fidder
 ```
 
-## Notes
+## Compatibility
+
+If trying to use an `10.X` CUDA runtime you may have to install older versions of 
+`torch` and `pytorch-lightning`, see 
+[teamtomo/fidder#17](https://github.com/teamtomo/fidder/issues/17) for details.
+
+# Notes
 
 This package provides similar functionality to 
 [BoxNet](http://www.warpem.com/warp/?page_id=135) from Warp
