@@ -35,7 +35,7 @@ def rescale_2d_bicubic(
         `(b, c, h, w)` array of rescaled image(s).
     """
     if factor is not None:
-        _, h, w = TF.get_dimensions(image)
+        h, w = image.shape[-2:]
         size = int(factor * min(h, w))
     rescaled_image = TF.resize(
         image, size=size, interpolation=TF.InterpolationMode.BICUBIC
@@ -63,7 +63,7 @@ def rescale_2d_nearest(
         `(b, c, h, w)` array of rescaled image(s).
     """
     if factor is not None:
-        _, h, w = TF.get_dimensions(image)
+        h, w = image.shape[-2:]
         size = int(factor * min(h, w))
     rescaled_image = TF.resize(
         image, size=size, interpolation=TF.InterpolationMode.NEAREST

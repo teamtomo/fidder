@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import torch
-import torchvision.transforms.functional as TF
 from einops import rearrange
 from pytorch_lightning import Trainer
 
@@ -38,7 +37,7 @@ def predict_fiducial_mask(
     elif image.ndim == 3:
         image = rearrange(image, "b h w -> b 1 h w")
     image = torch.as_tensor(image, dtype=torch.float)
-    _, h, w = TF.get_dimensions(image)
+    h, w = image.shape[-2:]
     downscale_factor = calculate_resampling_factor(
         source=pixel_spacing, target=TRAINING_PIXEL_SIZE
     )
