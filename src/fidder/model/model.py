@@ -28,6 +28,7 @@ class Fidder(pl.LightningModule):
         self.save_hyperparameters()
 
         self.validation_dice_score = 0
+        self.validation_step_outputs = []
 
         self.base_layer = nn.Sequential(
             nn.Conv2d(
@@ -97,6 +98,7 @@ class Fidder(pl.LightningModule):
         logits = self(images)  # (b, c, h, w)
         dice = dice_score(ground_truth=labels, logits=logits)
         self.log("validation dice score", dice)
+        self.validation_step_outputs.append(dice)
         return dice
 
     def predict_step(
@@ -126,10 +128,11 @@ class Fidder(pl.LightningModule):
             )
         return torch.tensor(merger.merge(unpad=True))
 
-    def validation_epoch_end(self, batch_dice_scores):
-        mean_dice_score = torch.mean(torch.as_tensor(batch_dice_scores))
+    def on_validation_epoch_end(self):
+        mean_dice_score = torch.mean(torch.as_tensor(self.validation_step_outputs))
         self.validation_dice_score = mean_dice_score
         self.log(name="validation dice score", value=mean_dice_score)
+        self.validation_step_outputs.clear()
 
     def configure_optimizers(self):
         optimizer = optim.RMSprop(
@@ -146,7 +149,6 @@ class Fidder(pl.LightningModule):
         epoch_idx: int,
         batch_idx: int,
         optimizer: torch.optim.Optimizer,
-        optimizer_idx: int,
         optimizer_closure: Optional[Callable[[], Any]] = None,
         **kwargs,
     ) -> None:
@@ -161,5 +163,5 @@ class Fidder(pl.LightningModule):
                 "\n"
             )  # for debugging
         super().optimizer_step(
-            epoch_idx, batch_idx, optimizer, optimizer_idx, optimizer_closure, **kwargs
+            epoch_idx, batch_idx, optimizer, optimizer_closure, **kwargs
         )

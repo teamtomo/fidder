@@ -1,7 +1,7 @@
 import mrcfile
 import torch
-from fidder.predict import predict_fiducial_mask
-from fidder.erase import erase_masked_region
+from fidder import predict_fiducial_mask
+from fidder import erase_masked_region
 
 # load your image
 image = torch.tensor(mrcfile.read('my_image_file.mrc'))

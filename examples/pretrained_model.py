@@ -1,13 +1,14 @@
 from pathlib import Path
 
 from fidder.predict.cli import predict_fiducial_mask
-from fidder.erase.cli import erase_segmented_fiducials
+from fidder.erase.cli import erase_masked_region
 
 image = Path('TS_01_0deg_bin8.mrc')
 mask = Path(image.stem + '_mask.mrc')
 probabilities = Path(image.stem + '_probabilities.mrc')
 checkpoint = Path(
-    '../training/lightning_logs/version_3123283/checkpoints/epoch=24-step=600.ckpt')
+    '../training/lightning_logs/version_3123283/checkpoints/epoch=24-step=600.ckpt'
+)
 erased = Path(image.stem + '_erased.mrc')
 
 predict_fiducial_mask(
@@ -19,7 +20,7 @@ predict_fiducial_mask(
     model_checkpoint_file=checkpoint
 )
 
-erase_segmented_fiducials(
+erase_masked_region(
     input_image=image,
     input_mask=mask,
     output=erased,

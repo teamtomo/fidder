@@ -11,7 +11,7 @@ from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 
 
 @cli.command(name="erase", no_args_is_help=True)
-def erase_segmented_fiducials(
+def erase_masked_region(
     input_image: Path = Option(
         default=...,
         help="Image file in MRC format.",
