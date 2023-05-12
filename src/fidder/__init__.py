@@ -12,8 +12,15 @@ __email__ = "alisterburt@gmail.com"
 __all__ = ["__version__", "cli", "Fidder", "train_fidder", "download_training_data"]
 
 from ._cli import cli
-from .model import Fidder
-from .data import download_training_data
+# cli tools
 from .train import train_fidder
 from .predict.cli import predict_fiducial_mask
-from .erase.cli import erase_segmented_fiducials
+from .erase.cli import erase_masked_region
+
+# python things
+from .model import Fidder
+from .data import download_training_data
+from .predict import predict_fiducial_mask
+from .erase import erase_masked_region
+
+

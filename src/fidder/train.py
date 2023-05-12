@@ -22,8 +22,7 @@ def train_fidder(
 
     trainer = Trainer(
         accelerator="auto",
-        devices=1,
-        auto_select_gpus=True,
+        devices="auto",
         default_root_dir=output_directory,
         max_steps=gradient_steps,
         log_every_n_steps=10,
