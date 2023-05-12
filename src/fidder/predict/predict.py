@@ -47,7 +47,7 @@ def predict_fiducial_mask(
     # prepare model
     if model_checkpoint_file is None:
         model_checkpoint_file = get_latest_checkpoint()
-    model = Fidder.load_from_checkpoint(model_checkpoint_file)
+    model = Fidder.load_from_checkpoint(model_checkpoint_file, map_location="cpu")
     model.eval()
 
     # predict
