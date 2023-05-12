@@ -125,11 +125,10 @@ def get_pixel_spacing_from_header(image: Path) -> float:
         return float(mrc.voxel_size.x)
 
 
-def connected_component_transform_2d(mask: torch.Tensor):
-    """Perform a connected component transform on a binary 2D image.
+def pixel_count_map_2d(mask: torch.Tensor):
+    """Calculate a pixel count map from a binary 2D image.
 
-    A connected component transform replaces every pixel in a binary image with
-    the number of connected components in the region around that pixel.
+    https://haesleinhuepf.github.io/BioImageAnalysisNotebooks/60_data_visualization/parametric_maps.html
 
     Parameters
     ----------
@@ -142,8 +141,16 @@ def connected_component_transform_2d(mask: torch.Tensor):
     """
     labels, n = ndi.label(mask.cpu().numpy())
     labels = torch.tensor(labels, dtype=torch.long)
-    labels_one_hot = F.one_hot(labels, num_classes=(n + 1))
-    counts = reduce(labels_one_hot, "h w c -> c", reduction="sum")
-    counts = {label_index: count.item() for label_index, count in enumerate(counts)}
-    connected_component_image = np.vectorize(counts.__getitem__)(labels)
-    return torch.tensor(connected_component_image)
+    if n < 100:  # vectorised, not memory efficient
+        labels_one_hot = F.one_hot(labels, num_classes=(n + 1))
+        counts = reduce(labels_one_hot, "h w c -> c", reduction="sum")
+        counts = {label_index: count.item() for label_index, count in enumerate(counts)}
+        connected_component_image = np.vectorize(counts.__getitem__)(labels)
+        connected_component_image = torch.tensor(connected_component_image)
+    else:
+        connected_component_image = torch.zeros_like(labels)
+        for label_id in range(n + 1):
+            conected_component_mask = labels == label_id
+            n_connected_components = torch.sum(conected_component_mask)
+            connected_component_image[conected_component_mask] = n_connected_components
+    return connected_component_image

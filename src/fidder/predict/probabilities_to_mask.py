@@ -1,5 +1,5 @@
 import torch
-from ..utils import connected_component_transform_2d
+from ..utils import pixel_count_map_2d
 
 
 def probabilities_to_mask(
@@ -27,6 +27,6 @@ def probabilities_to_mask(
         `(h, w)` boolean array.
     """
     mask = probabilities > threshold
-    pixel_count_map = connected_component_transform_2d(mask)
+    pixel_count_map = pixel_count_map_2d(mask)
     mask[pixel_count_map < connected_pixel_count_threshold] = 0
     return mask
