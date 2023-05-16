@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
+import einops
 import mrcfile
 import numpy as np
 import torch
@@ -36,20 +37,29 @@ def predict_fiducial_mask(
     ),
 ):
     """Predict a fiducial mask using a pretrained model."""
-    image = torch.tensor(mrcfile.read(input_image))
+    images = torch.tensor(mrcfile.read(input_image)).float()
+    images, ps = einops.pack([images], pattern='* h w')
     if pixel_spacing is None:
         pixel_spacing = get_pixel_spacing_from_header(input_image)
-    mask, probabilities = _predict_fiducial_mask(
-        image=image,
-        pixel_spacing=pixel_spacing,
-        probability_threshold=probability_threshold,
-        model_checkpoint_file=model_checkpoint_file,
-    )
-    mask = mask.cpu().numpy().astype(np.int8)
-    probabilities = probabilities.cpu().numpy()
+
+    masks = torch.empty_like(images, dtype=torch.int8)
+    probabilities = torch.empty_like(images)
+    for idx, image in enumerate(images):
+        _mask, _probabilities = _predict_fiducial_mask(
+            image=image,
+            pixel_spacing=pixel_spacing,
+            probability_threshold=probability_threshold,
+            model_checkpoint_file=model_checkpoint_file,
+        )
+        masks[idx] = _mask
+        probabilities[idx] = _probabilities
+    masks = masks.cpu().numpy().astype(np.int8)
+    probabilities = probabilities.float().cpu().numpy()
+    [masks] = einops.unpack(masks, pattern='* h w', packed_shapes=ps)
+    [probabilities] = einops.unpack(probabilities, pattern='* h w', packed_shapes=ps)
     output_pixel_spacing = (1, pixel_spacing, pixel_spacing)
     mrcfile.write(
-        name=output_mask, data=mask, voxel_size=output_pixel_spacing, overwrite=True
+        name=output_mask, data=masks, voxel_size=output_pixel_spacing, overwrite=True
     )
     if output_probabilities is not None:
         probabilities = probabilities.astype(np.float32)
