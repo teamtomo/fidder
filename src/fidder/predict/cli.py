@@ -55,17 +55,17 @@ def predict_fiducial_mask(
         probabilities[idx] = _probabilities
     masks = masks.cpu().numpy().astype(np.int8)
     probabilities = probabilities.float().cpu().numpy()
-    [_mask] = einops.unpack(masks, pattern='* h w', packed_shapes=ps)
-    [_probabilities] = einops.unpack(probabilities, pattern='* h w', packed_shapes=ps)
+    [masks] = einops.unpack(masks, pattern='* h w', packed_shapes=ps)
+    [probabilities] = einops.unpack(probabilities, pattern='* h w', packed_shapes=ps)
     output_pixel_spacing = (1, pixel_spacing, pixel_spacing)
     mrcfile.write(
-        name=output_mask, data=_mask, voxel_size=output_pixel_spacing, overwrite=True
+        name=output_mask, data=masks, voxel_size=output_pixel_spacing, overwrite=True
     )
     if output_probabilities is not None:
-        _probabilities = _probabilities.astype(np.float32)
+        probabilities = probabilities.astype(np.float32)
         mrcfile.write(
             name=output_probabilities,
-            data=_probabilities,
+            data=probabilities,
             voxel_size=output_pixel_spacing,
             overwrite=True,
         )
