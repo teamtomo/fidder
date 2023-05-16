@@ -30,7 +30,7 @@ def erase_masked_region(
     ),
 ):
     """Erase a masked region in a cryo-EM image."""
-    images = torch.as_tensor(mrcfile.read(input_image)).squeeze()
+    images = torch.as_tensor(mrcfile.read(input_image)).squeeze().float()
     masks = torch.as_tensor(mrcfile.read(input_mask), dtype=torch.bool).squeeze()
     if images.shape != masks.shape:
         raise ValueError('Shape mismatch between data in image and mask files.')
