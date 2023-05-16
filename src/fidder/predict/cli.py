@@ -38,7 +38,7 @@ def predict_fiducial_mask(
 ):
     """Predict a fiducial mask using a pretrained model."""
     images = torch.tensor(mrcfile.read(input_image)).float()
-    images, ps = einops.pack(images, pattern='* h w')
+    images, ps = einops.pack([images], pattern='* h w')
     if pixel_spacing is None:
         pixel_spacing = get_pixel_spacing_from_header(input_image)
 
