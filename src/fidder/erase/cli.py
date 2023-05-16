@@ -34,8 +34,8 @@ def erase_masked_region(
     masks = torch.as_tensor(mrcfile.read(input_mask), dtype=torch.bool).squeeze()
     if images.shape != masks.shape:
         raise ValueError('Shape mismatch between data in image and mask files.')
-    images, ps = einops.pack(images, pattern='* h w')
-    masks, ps = einops.pack(masks, pattern='* h w')
+    images, ps = einops.pack([images], pattern='* h w')
+    masks, ps = einops.pack([masks], pattern='* h w')
 
     erased_images = torch.empty_like(images, dtype=torch.float32)
     for idx, (image, mask) in enumerate(zip(images, masks)):
