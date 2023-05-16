@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from typer import Option
 
-from .erase import erase_masked_region
+from .erase import erase_masked_region as _erase_masked_region
 from ..utils import get_pixel_spacing_from_header
 from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 
@@ -39,7 +39,7 @@ def erase_masked_region(
 
     erased_images = torch.empty_like(images, dtype=torch.float32)
     for idx, (image, mask) in enumerate(zip(images, masks)):
-        _erased_image = erase_masked_region(
+        _erased_image = _erase_masked_region(
             image=image,
             mask=mask,
             background_intensity_model_resolution=(8, 8),
