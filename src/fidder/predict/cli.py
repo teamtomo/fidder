@@ -46,7 +46,7 @@ def predict_fiducial_mask(
     probabilities = torch.empty_like(images)
     for idx, image in enumerate(images):
         _mask, _probabilities = _predict_fiducial_mask(
-            image=images,
+            image=image,
             pixel_spacing=pixel_spacing,
             probability_threshold=probability_threshold,
             model_checkpoint_file=model_checkpoint_file,
