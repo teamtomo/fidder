@@ -4,8 +4,8 @@ import numpy as np
 import torch
 from einops import einops
 
-from ..utils import estimate_background_std
-from .sparse_local_mean import estimate_local_mean
+from ..utils import estimate_background_std, estimate_background_std_3d
+from .sparse_local_mean import estimate_local_mean, estimate_local_mean_3d
 
 
 def erase_masked_region(
@@ -108,3 +108,60 @@ def _erase_single_image(
                              size=n_pixels_to_inpaint)
     inpainted_image[idx_foreground] += torch.as_tensor(noise)
     return inpainted_image
+
+
+def erase_masked_region_3d(
+    volume: torch.Tensor,
+    mask: torch.Tensor,
+    background_intensity_model_resolution: Tuple[int, int, int] = (5, 5, 5),
+    background_intensity_model_samples: int = 20000,
+) -> torch.Tensor:
+    """Inpaint image(s) with gaussian noise.
+
+
+    Parameters
+    ----------
+    image: torch.Tensor
+        `(b, h, w)` or `(h, w)` array containing image data for erase.
+    mask: torch.Tensor
+        `(b, h, w)` or `(h, w)` binary mask separating foreground from background pixels.
+        Foreground pixels (1) will be inpainted.
+    background_intensity_model_resolution: Tuple[int, int]
+        Number of points in each image dimension for the background mean model.
+        Minimum of two points in each dimension.
+    background_intensity_model_samples: int
+        Number of sample points used to determine the model of the background mean.
+
+    Returns
+    -------
+    inpainted_image: torch.Tensor
+        `(b, h, w)` or `(h, w)` array containing image data inpainted in the foreground pixels of the mask
+        with gaussian noise matching the local mean and global standard deviation of the image
+        for background pixels.
+    """
+    volume = torch.as_tensor(volume)
+    mask = torch.as_tensor(mask, dtype=torch.bool)
+    if volume.shape != mask.shape:
+        raise ValueError("image shape must match mask shape.")
+
+    inpainted = torch.clone(volume)
+    local_mean = estimate_local_mean_3d(
+        volume=volume,
+        mask=torch.logical_not(mask),
+        resolution=background_intensity_model_resolution,
+        n_samples_for_fit=background_intensity_model_samples,
+    )
+
+    # fill foreground pixels with local mean
+    idx_foreground = torch.argwhere(mask.bool() == True)
+    idx_foreground = (idx_foreground[:, 0], idx_foreground[:, 1], idx_foreground[:, 2])
+
+    inpainted[idx_foreground] = local_mean[idx_foreground]
+
+    # add noise with mean=0 std=background std estimate
+    background_std = estimate_background_std_3d(volume, mask)
+    n_pixels_to_inpaint = idx_foreground[0].shape[0]
+    noise = np.random.normal(loc=0, scale=background_std, size=(n_pixels_to_inpaint, 3))
+    inpainted[idx_foreground] += torch.as_tensor(np.mean(noise, axis=1))
+
+    return torch.as_tensor(inpainted, dtype=torch.float32)

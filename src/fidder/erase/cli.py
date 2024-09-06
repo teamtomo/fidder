@@ -7,6 +7,7 @@ import torch
 from typer import Option
 
 from .erase import erase_masked_region as _erase_masked_region
+from .erase import erase_masked_region_3d as _erase_masked_region_3d
 from ..utils import get_pixel_spacing_from_header
 from .._cli import cli, OPTION_PROMPT_KWARGS as PKWARGS
 
@@ -51,6 +52,46 @@ def erase_masked_region(
     mrcfile.write(
         name=output_image,
         data=np.array(erased_images, dtype=np.float32),
+        voxel_size=pixel_spacing,
+        overwrite=True,
+    )
+
+
+@cli.command(name="erase_3d", no_args_is_help=True)
+def erase_masked_region_3d(
+    input_image: Path = Option(
+        default=...,
+        help="Image file in MRC format.",
+        **PKWARGS
+    ),
+    input_mask: Path = Option(
+        default=...,
+        help="Mask file in MRC format.",
+        **PKWARGS
+    ),
+    output_image: Path = Option(
+        default=...,
+        help="Output file in MRC format.",
+        **PKWARGS
+    ),
+):
+    """Erase a masked region in a cryo-EM image."""
+    volume = torch.as_tensor(mrcfile.read(input_image)).squeeze().float()
+    mask = torch.as_tensor(mrcfile.read(input_mask), dtype=torch.bool).squeeze()
+    if volume.shape != mask.shape:
+        raise ValueError('Shape mismatch between data in volume and mask files.')
+
+    erased_volume = _erase_masked_region_3d(
+        volume=volume,
+        mask=mask,
+        background_intensity_model_resolution=(8, 8, 8),
+        background_intensity_model_samples=25000,
+    )
+
+    pixel_spacing = get_pixel_spacing_from_header(input_image)
+    mrcfile.write(
+        name=output_image,
+        data=np.array(erased_volume, dtype=np.float32),
         voxel_size=pixel_spacing,
         overwrite=True,
     )
