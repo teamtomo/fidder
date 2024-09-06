@@ -41,8 +41,7 @@ def estimate_local_mean(
     # get a random set of foreground pixels for the background fit
     foreground_sample_idx = np.argwhere(mask == 1)
 
-    if n_background_samples := len(foreground_sample_idx) < n_samples_for_fit:
-        n_samples_for_fit = n_background_samples
+    n_samples_for_fit = min(n_samples_for_fit, len(foreground_sample_idx))
     selection = np.random.choice(
         foreground_sample_idx.shape[0], size=n_samples_for_fit, replace=False
     )
