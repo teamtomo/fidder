@@ -2,17 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://teamtomo.org/fidder/</loc>
-         <lastmod>2023-05-16</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-06</lastmod>
     </url>
     <url>
          <loc>https://teamtomo.org/fidder/usage/command_line/</loc>
-         <lastmod>2023-05-16</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-06</lastmod>
     </url>
     <url>
          <loc>https://teamtomo.org/fidder/usage/python/</loc>
-         <lastmod>2023-05-16</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-06</lastmod>
     </url>
 </urlset>
