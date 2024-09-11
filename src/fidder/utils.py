@@ -101,6 +101,28 @@ def central_crop_2d(image: torch.Tensor, percentage: float = 25) -> torch.Tensor
     return image[..., hf:hc, wf:wc]
 
 
+def central_crop_3d(image: torch.Tensor, percentage: float = 25) -> torch.Tensor:
+    """Get a central crop of (a batch of) 2D image(s).
+
+    Parameters
+    ----------
+    image: torch.Tensor
+        `(b, h, w)` or `(h, w)` array of 2D images.
+    percentage: float
+        percentage of image height and width for cropped region.
+    Returns
+    -------
+    cropped_image: torch.Tensor
+        `(b, h, w)` or `(h, w)` array of cropped 2D images.
+    """
+    h, w, d = image.shape[-3], image.shape[-2], image.shape[-1]
+    mh, mw, md = h // 2, w // 2, d // 2
+    dh, dw, dd = int(h * (percentage / 100 / 2)), int(w * (percentage / 100 / 2)), int(d * (percentage / 100 / 2))
+    hf, wf, df = mh - dh, mw - dw, md - dd
+    hc, wc, dc = mh + dh, mw + dw, md + dd
+    return image[..., hf:hc, wf:wc, df:dc]
+
+
 def estimate_background_std(image: torch.Tensor, mask: torch.Tensor):
     """Estimate the standard deviation of the background from a central crop.
 
@@ -118,6 +140,31 @@ def estimate_background_std(image: torch.Tensor, mask: torch.Tensor):
     image = central_crop_2d(image, percentage=25).float()
     mask = central_crop_2d(mask, percentage=25)
     return torch.std(image[mask == 0])
+
+
+def estimate_background_std_3d(image: torch.Tensor, mask: torch.Tensor):
+    """Estimate the standard deviation of the background from a central crop.
+
+    Parameters
+    ----------
+    image: torch.Tensor
+        `(h, w)` array containing data for which background standard deviation will be estimated.
+    mask: torch.Tensor of 0 or 1
+        Binary mask separating foreground and background.
+    Returns
+    -------
+    standard_deviation: float
+        estimated standard deviation for the background.
+    """
+    image = central_crop_3d(image, percentage=25).float()
+    mask = central_crop_3d(mask, percentage=25)
+    image_masked = image.clone()
+    image_masked[mask == 1] = np.nan
+    return (
+        np.nanmean(np.nanstd(image_masked, axis=0)),
+        np.nanmean(np.nanstd(image_masked, axis=1)),
+        np.nanmean(np.nanstd(image_masked, axis=2)),
+    )
 
 
 def get_pixel_spacing_from_header(image: Path) -> float:
