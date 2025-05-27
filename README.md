@@ -78,6 +78,9 @@ If trying to use an `10.X` CUDA runtime you may have to install older versions o
 `torch` and `pytorch-lightning`, see 
 [teamtomo/fidder#17](https://github.com/teamtomo/fidder/issues/17) for details.
 
+### Model weights cache directory
+Fidder will fetch the needed weights from Zenodo on its first run. To do so, [pooch](https://www.fatiando.org/pooch/latest/index.html) is used to download the weights to your computer. In Unix-like systems, this will [default](https://www.fatiando.org/pooch/latest/api/generated/pooch.os_cache.html#pooch-os-cache) to _~/.cache/fidder_ unless XDG_CACHE_HOME is set to a different location. 
+
 ## Notes
 
 This package provides similar functionality to 
